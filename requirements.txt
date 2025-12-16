@@ -2,13 +2,11 @@
 Flask==3.0.0
 Flask-CORS==4.0.0
 
-# Database
 mysql-connector-python==8.1.0
 
 # gemini
 google-genai==0.3.0
 
-# data validation
 pydantic==2.5.0
 
 # Environment
