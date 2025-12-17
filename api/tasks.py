@@ -8,7 +8,7 @@ from models.models import TaskCreate, TaskUpdate, TaskResponse
 # for chat endpoint
 from google.genai import types
 from agent.tools_definitions import client, config
-from agent.gemini import tools_dict
+from agent.tools import tools_dict
 
 
 def task_to_dict(task_row):
