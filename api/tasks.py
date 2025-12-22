@@ -33,10 +33,8 @@ def task_to_dict(task_row):
 
 def register_tasks_routes(app):
     """Register task routes directly on app"""
-
     @app.route('/api/chat', methods=['POST'])
     def chat():
-
         def serialize_history(history):
             """Converts Gemini objects into JSON-serializable dictionaries."""
             serialized = []
