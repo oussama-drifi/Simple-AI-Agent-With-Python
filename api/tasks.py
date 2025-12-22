@@ -36,18 +36,46 @@ def register_tasks_routes(app):
 
     @app.route('/api/chat', methods=['POST'])
     def chat():
+
+        def serialize_history(history):
+            """Converts Gemini objects into JSON-serializable dictionaries."""
+            serialized = []
+            for content in history:
+                parts = []
+                for part in content.parts:
+                    if part.text:
+                        parts.append({"text": part.text})
+                    elif part.function_call:
+                        parts.append({
+                            "function_call": {
+                                "name": part.function_call.name,
+                                "args": dict(part.function_call.args)
+                            }
+                        })
+                    elif part.function_response:
+                        parts.append({
+                            "function_response": {
+                                "name": part.function_response.name,
+                                "response": part.function_response.response
+                            }
+                        })
+                serialized.append({"role": content.role, "parts": parts})
+            return serialized
+
+
+
         data = request.json
         user_prompt = data.get('user_prompt')
         # History should be a list of types.Content objects (from fontend)
-        history = data.get('history', []) 
+        history = data.get('history', [])
         
         # 1. Add user message to history
         history.append(types.Content(role="user", parts=[types.Part(text=user_prompt)]))
 
-        # 2. Agentic Loop
+        print("endpoint works fine")
         while True:
             response = client.models.generate_content(
-                model="gemini-2.0-flash", # Note: Using 2.0 as 2.5 is not released yet
+                model="models/gemini-1.5-flash",
                 contents=history,
                 config=config
             )
@@ -57,19 +85,22 @@ def register_tasks_routes(app):
             history.append(model_content)
 
             # Check for function calls in the parts
-            function_call = next((part.function_call for part in model_content.parts if part.function_call), None)
-
+            function_call = None
+            for part in model_content.parts:
+                if part.function_call:
+                    function_call = part.function_call
+                    break
+    
             if function_call:
-                # Execute logic
+
                 tool_name = function_call.name
                 tool_args = function_call.args
                 
-                # Call the actual Python function
+                # Call the function
                 observation = tools_dict[tool_name](**tool_args)
                 
-                # Add the tool's result to history as a function response
                 history.append(types.Content(
-                    role="tool", # Note: New SDK uses 'tool' role for function responses
+                    role="tool",
                     parts=[types.Part(
                         function_response=types.FunctionResponse(
                             name=tool_name,
@@ -77,12 +108,12 @@ def register_tasks_routes(app):
                         )
                     )]
                 ))
-                # Continue loop: the model will now see the 'observation' and generate a final response
+    
             else:
                 # No tool call, model provided a text response
                 return jsonify({
                     "response": response.text,
-                    "history": history # You'll need a helper to serialize this to JSON
+                    "history": serialize_history(history)
                 })
     
     @app.route('/api/tasks', methods=['GET'])

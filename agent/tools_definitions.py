@@ -1,6 +1,7 @@
 from google import genai
 from google.genai import types
 from dotenv import load_dotenv
+from datetime import date
 import os
 load_dotenv()
 
@@ -15,8 +16,9 @@ task_tools = types.Tool(
             parameters=types.Schema(
                 type="OBJECT",
                 properties={
-                    "status": types.Schema(type="STRING", enum=["todo", "in progress", "done", "canceled"]),
+                    "status": types.Schema(type="STRING", enum=["todo", "in progress", "canceled", "done"]),
                     "priority": types.Schema(type="STRING", enum=["low", "medium", "high"]),
+                    "category": types.Schema(type="STRING", description="e,g: 'work', 'study', 'health'..."),
                     "deadline": types.Schema(type="STRING", description="Format: YYYY-MM-DD")
                 }
             )
@@ -30,6 +32,7 @@ task_tools = types.Tool(
                     "title": types.Schema(type="STRING"),
                     "description": types.Schema(type="STRING"),
                     "priority": types.Schema(type="STRING", enum=["low", "medium", "high"]),
+                    "category": types.Schema(type="STRING", description="e,g: 'work', 'study', 'health'..."),
                     "deadline": types.Schema(type="STRING", description="Format: YYYY-MM-DD HH:MM:SS")
                 },
                 required=["title"]
@@ -44,7 +47,8 @@ task_tools = types.Tool(
                     "task_id": types.Schema(type="INTEGER"),
                     "status": types.Schema(type="STRING", enum=["todo", "in progress", "done", "canceled"]),
                     "priority": types.Schema(type="STRING", enum=["low", "medium", "high"]),
-                    "deadline": types.Schema(type="STRING")
+                    "categorie": types.Schema(type="STRING", description="e,g: 'work', 'study', 'health'..."),
+                    "deadline": types.Schema(type="STRING", description="Format: YYYY-MM-DD")
                 },
                 required=["task_id"]
             )
@@ -63,7 +67,8 @@ task_tools = types.Tool(
 
 config = types.GenerateContentConfig(
     tools=[task_tools],
-    system_instruction="""You are a task manager. Current date: Wednesday, Dec 17, 2025. "
-            If asked for a plan, provide it in text first. Only call create_task
-            if the user confirms or gives a direct order to create."""
+    system_instruction=f"""You are a task manager. Current date: {date.today()} "
+            If asked for a plan, provide it in text first. Only as for
+            a function call like create_task or update_task if the user asks to perform the action, 
+            confirms or gives a direct order to do so"""
 )
