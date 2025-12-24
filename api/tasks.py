@@ -9,6 +9,7 @@ from models.models import TaskCreate, TaskUpdate, TaskResponse
 from google.genai import types
 from agent.tools_definitions import client, config
 from agent.tools import tools_dict
+from agent.tools import get_tasks, create_task, update_task, get_task_details
 
 
 def task_to_dict(task_row):
@@ -33,6 +34,7 @@ def task_to_dict(task_row):
 
 def register_tasks_routes(app):
     """Register task routes directly on app"""
+
     @app.route('/api/chat', methods=['POST'])
     def chat():
         def serialize_history(history):
@@ -61,20 +63,36 @@ def register_tasks_routes(app):
             return serialized
 
 
-
-        data = request.json
-        user_prompt = data.get('user_prompt')
-        # History should be a list of types.Content objects (from fontend)
-        history = data.get('history', [])
+        # data = request.json
+        # user_prompt = data.get('user_prompt')
+        # # History should be a list of types.Content objects (from fontend)
+        # history = data.get('history', [])
         
         # 1. Add user message to history
-        history.append(types.Content(role="user", parts=[types.Part(text=user_prompt)]))
+        # history.append(types.Content(role="user", parts=[types.Part(text=user_prompt)]))
+
+        data = request.get_json(silent=True)
+
+        if not data or "user_prompt" not in data:
+            return jsonify({"error": "Missing user_prompt"}), 400
+
+        user_prompt = data["user_prompt"]
+
+        history = []
+        history.append(types.Content(
+            role="user",
+            parts=[types.Part(text=str(user_prompt))]
+        ))
 
         print("endpoint works fine")
-        while True:
+
+        turns = 0
+        while turns < 3: # max turns 3
+            turns += 1
+
             response = client.models.generate_content(
-                model="models/gemini-1.5-flash",
-                contents=history,
+                model="gemini-2.0-flash",
+                contents=history[-4:],
                 config=config
             )
             
@@ -92,9 +110,9 @@ def register_tasks_routes(app):
             if function_call:
 
                 tool_name = function_call.name
-                tool_args = function_call.args
+                tool_args = dict(function_call.args)
                 
-                # Call the function
+                # Call the function (and get result)
                 observation = tools_dict[tool_name](**tool_args)
                 
                 history.append(types.Content(
@@ -102,7 +120,8 @@ def register_tasks_routes(app):
                     parts=[types.Part(
                         function_response=types.FunctionResponse(
                             name=tool_name,
-                            response={"result": observation}
+                            # response={"result": observation}
+                            response=observation
                         )
                     )]
                 ))
@@ -113,6 +132,11 @@ def register_tasks_routes(app):
                     "response": response.text,
                     "history": serialize_history(history)
                 })
+        
+        return jsonify({
+            "response": response.text,
+            "history": serialize_history(history)
+        })
     
     @app.route('/api/tasks', methods=['GET'])
     def get_tasks():

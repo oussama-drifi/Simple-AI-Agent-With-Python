@@ -2,6 +2,8 @@ from google import genai
 from google.genai import types
 from dotenv import load_dotenv
 from datetime import date
+
+
 import os
 load_dotenv()
 
@@ -12,11 +14,11 @@ task_tools = types.Tool(
     function_declarations=[
         types.FunctionDeclaration(
             name="get_tasks",
-            description="List tasks with optional filters for status, priority, and deadline.",
+            description="List tasks with optional filters for status, priority, category, and deadline.",
             parameters=types.Schema(
                 type="OBJECT",
                 properties={
-                    "status": types.Schema(type="STRING", enum=["todo", "in progress", "canceled", "done"]),
+                    "status": types.Schema(type="STRING", enum=["todo", "in progress", "canceled", "completed"]),
                     "priority": types.Schema(type="STRING", enum=["low", "medium", "high"]),
                     "category": types.Schema(type="STRING", description="e,g: 'work', 'study', 'health'..."),
                     "deadline": types.Schema(type="STRING", description="Format: YYYY-MM-DD")
@@ -33,21 +35,21 @@ task_tools = types.Tool(
                     "description": types.Schema(type="STRING"),
                     "priority": types.Schema(type="STRING", enum=["low", "medium", "high"]),
                     "category": types.Schema(type="STRING", description="e,g: 'work', 'study', 'health'..."),
-                    "deadline": types.Schema(type="STRING", description="Format: YYYY-MM-DD HH:MM:SS")
+                    "deadline": types.Schema(type="STRING", description="Format: YYYY-MM-DD")
                 },
                 required=["title"]
             )
         ),
         types.FunctionDeclaration(
             name="update_task",
-            description="Update status, priority, or deadline of an existing task.",
+            description="Update at least one of: status, priority, category, or deadline of an existing task.",
             parameters=types.Schema(
                 type="OBJECT",
                 properties={
                     "task_id": types.Schema(type="INTEGER"),
-                    "status": types.Schema(type="STRING", enum=["todo", "in progress", "done", "canceled"]),
+                    "status": types.Schema(type="STRING", enum=["todo", "in progress", "canceled", "completed"]),
                     "priority": types.Schema(type="STRING", enum=["low", "medium", "high"]),
-                    "categorie": types.Schema(type="STRING", description="e,g: 'work', 'study', 'health'..."),
+                    "category": types.Schema(type="STRING", description="e,g: 'work', 'study', 'health'..."),
                     "deadline": types.Schema(type="STRING", description="Format: YYYY-MM-DD")
                 },
                 required=["task_id"]
@@ -71,4 +73,5 @@ config = types.GenerateContentConfig(
             If asked for a plan, provide it in text first. Only as for
             a function call like create_task or update_task if the user asks to perform the action, 
             confirms or gives a direct order to do so"""
+    # we will discuss the system_prompt later
 )

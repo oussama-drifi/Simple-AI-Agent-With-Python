@@ -72,14 +72,14 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        user_prompt: prompt
+                        user_prompt: prompt.value
                     })
                 });
                 const data = await response.json();
                 showResult('chatResult', data, !response.ok);
 
             } catch (error) {
-
+                // doesn't matter
             }
         }
         
@@ -147,7 +147,7 @@
         }
         
         // Initial list of tasks
-        listTasks();
+        // listTasks();
     </script>
 </body>
 </html>

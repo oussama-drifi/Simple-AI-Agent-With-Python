@@ -1,3 +1,6 @@
+
+
+# note: the database is mySQL
 from database.db import Database
 
 def get_tasks(status=None, priority=None, category=None, deadline=None):
@@ -55,6 +58,9 @@ def update_task(task_id, status=None, priority=None, category=None, deadline=Non
         updates.append("deadline = %s")
         params.append(deadline)
     params.append(task_id)
+
+    if not params:
+        return {"status": "error", "message": "no task_id is provided (try to call the function get_tasks and get the corresponding task_id)"}
     
     query = f"UPDATE tasks SET {', '.join(updates)} WHERE task_id = %s"
     cursor.execute(query, params)
@@ -63,11 +69,16 @@ def update_task(task_id, status=None, priority=None, category=None, deadline=Non
     return {"status": "success", "message": f"Task {task_id} updated."}
 
 def get_task_details(task_id):
+
     conn = Database.get_connection()
     cursor = conn.cursor(dictionary=True)
     # Get task and join sub-tasks
-    cursor.execute("SELECT * FROM tasks WHERE task_id = %s", (task_id,))
+    cursor.execute("SELECT * FROM tasks WHERE task_id = %s AND deleted_at IS NULL", (task_id,))
     task = cursor.fetchone()
+    
+    if not task:
+        return {"status": "error", "message": f"Task {task_id} not found"}
+    
     cursor.execute("SELECT * FROM sub_tasks WHERE task_id = %s AND deleted_at IS NULL", (task_id,))
     sub_tasks = cursor.fetchall()
     conn.close()
