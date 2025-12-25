@@ -83,11 +83,3 @@ def get_task_details(task_id):
     sub_tasks = cursor.fetchall()
     conn.close()
     return {"task": task, "sub_tasks": sub_tasks}
-
-# Map for the loop
-tools_dict = {
-    "get_tasks": get_tasks,
-    "create_task": create_task,
-    "update_task": update_task,
-    "get_task_details": get_task_details
-}
