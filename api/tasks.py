@@ -2,14 +2,13 @@ from flask import request, jsonify
 from datetime import datetime
 from database.db import Database
 
-# for regular endpoint
+# for CRUD endpoint
 from models.models import TaskCreate, TaskUpdate, TaskResponse
 
 # for chat endpoint
 from google.genai import types
 from agent.tools_definitions import client, config
 from agent.tools import get_tasks as get_user_tasks, create_task as create_task_for_user, update_task as update_task_for_user, get_task_details
-
 
 def task_to_dict(task_row):
     """Convert database row to dictionary"""
@@ -36,108 +35,6 @@ def register_tasks_routes(app):
 
     @app.route('/api/chat', methods=['POST'])
     def chat():
-        def serialize_history(history):
-            """Converts Gemini objects into JSON-serializable dictionaries."""
-            serialized = []
-            for content in history:
-                parts = []
-                for part in content.parts:
-                    if part.text:
-                        parts.append({"text": part.text})
-                    elif part.function_call:
-                        parts.append({
-                            "function_call": {
-                                "name": part.function_call.name,
-                                "args": dict(part.function_call.args)
-                            }
-                        })
-                    elif part.function_response:
-                        parts.append({
-                            "function_response": {
-                                "name": part.function_response.name,
-                                "response": part.function_response.response
-                            }
-                        })
-                serialized.append({"role": content.role, "parts": parts})
-            return serialized
-
-        # data = request.json
-        # user_prompt = data.get('user_prompt')
-        # # History should be a list of types.Content objects (from fontend)
-        # history = data.get('history', [])
-        
-        # 1. Add user message to history
-        # history.append(types.Content(role="user", parts=[types.Part(text=user_prompt)]))
-
-        # data = request.get_json(silent=True)
-
-        # if not data or "user_prompt" not in data:
-        #     return jsonify({"error": "Missing user_prompt"}), 400
-
-        # user_prompt = data["user_prompt"]
-
-        # history = []
-        # history.append(types.Content(
-        #     role="user",
-        #     parts=[types.Part(text=str(user_prompt))]
-        # ))
-
-        # print("endpoint works fine")
-
-        # turns = 0
-        # while turns < 3: # max turns 3
-        #     turns += 1
-
-        #     response = client.models.generate_content(
-        #         model="gemini-2.0-flash",
-        #         contents=history,
-        #         config=config
-        #     )
-            
-        #     # Add model's reasoning/response to history
-        #     model_content = response.candidates[0].content
-        #     history.append(model_content)
-
-        #     # Check for function calls in the parts
-        #     function_call = None
-        #     for part in model_content.parts:
-        #         if part.function_call:
-        #             function_call = part.function_call
-        #             break
-    
-        #     if function_call:
-
-        #         tool_name = function_call.name
-        #         tool_args = dict(function_call.args)
-                
-        #         # Call the function (and get result)
-        #         observation = tools_dict[tool_name](**tool_args)
-                
-        #         history.append(types.Content(
-        #             role="tool",
-        #             parts=[types.Part(
-        #                 function_response=types.FunctionResponse(
-        #                     name=tool_name,
-        #                     # response={"result": observation}
-        #                     response=observation
-        #                 )
-        #             )]
-        #         ))
-    
-        #     else:
-        #         # No tool call, model provided a text response
-        #         return jsonify({
-        #             "response": response.text,
-        #             "history": serialize_history(history)
-        #         })
-        
-        # return jsonify({
-        #     "response": response.text,
-        #     "history": serialize_history(history)
-        # })
-    
-    @app.route('/api/message', methods=['POST'])
-    def message():
         try:
             data = request.json
             user_prompt = data.get("user_prompt")
@@ -153,8 +50,8 @@ def register_tasks_routes(app):
             # Add the new user message
             history.append(types.Content(role="user", parts=[types.Part(text=user_prompt)]))
 
-            # --- THE AGENTIC LOOP ---
-            # We loop to allow Gemini to call multiple tools if needed
+            # --- THE AGENT LOOP ---
+            # max turns
             turns = 1
             while turns <= 5:
                 turns += 1
@@ -205,7 +102,6 @@ def register_tasks_routes(app):
                     ))
 
                 else:
-                    # Add model's text response to history
                     history.append(response.candidates[0].content)
                     break
 
@@ -218,7 +114,7 @@ def register_tasks_routes(app):
                 "history": serializable_history
             })
         except Exception as e:
-            print(f"Error: {e}")
+            print(f"Error: {e} ")
             return jsonify({"error": str(e)}), 500
 
     @app.route('/api/tasks', methods=['GET'])

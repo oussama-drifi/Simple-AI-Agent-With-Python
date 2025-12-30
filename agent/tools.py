@@ -1,6 +1,3 @@
-
-
-# note: the database is mySQL
 from database.db import Database
 
 def get_tasks(status=None, priority=None, category=None, deadline=None):
