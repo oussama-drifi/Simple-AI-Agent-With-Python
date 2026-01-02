@@ -33,18 +33,6 @@ class TaskUpdate(BaseModel):
     status: Optional[Literal["todo", "in progress", "canceled", "done"]] = Field(None, description="New status")
 
 
-class SubTaskCreate(SubTaskBase):
-    """Model for creating a new subtask"""
-    task_id: int = Field(..., gt=0, description="ID of the parent task")
-    is_done: bool = Field(False, description="Whether the subtask is completed")
-
-class SubTaskUpdate(BaseModel):
-    """Model for updating a subtask"""
-    title: Optional[str] = Field(None, min_length=1, max_length=255, description="New title for the subtask")
-    description: Optional[str] = Field(None, description="New description for the subtask")
-    deadline: Optional[datetime] = Field(None, description="New deadline for the subtask")
-    is_done: Optional[bool] = Field(None, description="New completion status")
-
 
 # models to retrieve from database
 class TaskResponse(TaskBase):
