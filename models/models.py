@@ -11,12 +11,6 @@ class TaskBase(BaseModel):
     deadline: Optional[datetime] = Field(None, description="When the task is due (ISO format: YYYY-MM-DDTHH:MM:SS)", examples=["2024-12-31T23:59:59", "2024-06-15T12:00:00"])
     category: Optional[str] = Field("other", max_length=100, description="Task category", examples=["work", "personal", "shopping", "health", "finance"])
 
-class SubTaskBase(BaseModel):
-    """Base model for subtask-related schemas"""
-    title: str = Field(..., min_length=1, max_length=255, description="Title of the subtask")
-    description: Optional[str] = Field(None, description="Detailed description of the subtask")
-    deadline: Optional[datetime] = Field(None, description="When the subtask is due")
-
 # request models
 class TaskCreate(TaskBase):
     """Schema for creating a new task"""
@@ -30,9 +24,7 @@ class TaskUpdate(BaseModel):
     deadline: Optional[datetime] = Field(None, description="New deadline for the task")
     category: Optional[str] = Field(None, max_length=100, description="New category for the task")
     priority: Optional[Literal["low", "medium", "high"]] = Field(None, description="New priority level")
-    status: Optional[Literal["todo", "in progress", "canceled", "done"]] = Field(None, description="New status")
-
-
+    status: Optional[Literal["todo", "in progress", "canceled", "completed"]] = Field(None, description="New status")
 
 # models to retrieve from database
 class TaskResponse(TaskBase):
