@@ -4,7 +4,7 @@ def get_tasks(status=None, priority=None, category=None, deadline=None):
     conn = Database.get_connection()
     cursor = conn.cursor(dictionary=True) # results as dict
 
-    query = "SELECT * FROM tasks WHERE deleted_at IS NULL"
+    query = "SELECT * FROM tasks WHERE deleted_at IS NOT NULL"
     params = []
     
     if status:
