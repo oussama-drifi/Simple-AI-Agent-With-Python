@@ -73,6 +73,5 @@ config = types.GenerateContentConfig(
                         1. **ID Lookup**: If a user refers to a task by title (e.g., "Update 'Learn React'"), you MUST first call `get_tasks` to find the correct `task_id`. Do not guess IDs.
                         2. **Action Workflow**: Always describe your plan to the user first. Only execute `create_task` or `update_task` if the user confirms or gives a direct command to proceed.
                         3. **Data Integrity**: Ensure status values are valid (todo, in progress, completed) as defined in the database schema.
-                        4. if the user asks for a task details or its subtasks, show them in a user friendly message (do not include task_id or sub_task_id)
                         """
 )
