@@ -1,82 +1,49 @@
-from database.db import Database
+import requests
+import os
+
+BASE_URL = os.getenv("CRUD_SERVICE_BASE_URL", "http://localhost:3000")
+
 
 def get_tasks(status=None, priority=None, category=None, deadline=None):
-    conn = Database.get_connection()
-    cursor = conn.cursor(dictionary=True) # results as dict
+    params = {k: v for k, v in {"status": status, "priority": priority, "category": category, "deadline": deadline}.items() if v}
+    res = requests.get(f"{BASE_URL}/api/tasks", params=params)
+    return res.json()
 
-    query = "SELECT * FROM tasks WHERE deleted_at IS NOT NULL"
-    params = []
-    
-    if status:
-        query += " AND status = %s"
-        params.append(status)
-    if priority:
-        query += " AND priority = %s"
-        params.append(priority)
-    if category:
-        query += " AND category = %s"
-        params.append(category)
-    if deadline:
-        query += " AND DATE(deadline) = %s"
-        params.append(deadline)
-
-    cursor.execute(query, params)
-    results = cursor.fetchall()
-    conn.close()
-    return results
-
-def create_task(title, description=None, priority='medium', category='other', deadline=None):
-    conn = Database.get_connection()
-    cursor = conn.cursor()
-
-    query = "INSERT INTO tasks (title, description, priority, category, deadline) VALUES (%s, %s, %s, %s, %s)"
-    cursor.execute(query, (title, description, priority, category, deadline))
-    conn.commit()
-    new_task_id = cursor.lastrowid
-    conn.close()
-    return {"status": "success", "task_id": new_task_id, "message": f"Task '{title}' created."}
-
-def update_task(task_id, status=None, priority=None, category=None, deadline=None):
-    conn = Database.get_connection()
-    cursor = conn.cursor()
-
-    updates = []
-    params = []
-    if status: 
-        updates.append("status = %s")
-        params.append(status)
-    if priority:
-        updates.append("priority = %s")
-        params.append(priority)
-    if category:
-        updates.append("category = %s")
-        params.append(category)
-    if deadline:
-        updates.append("deadline = %s")
-        params.append(deadline)
-    params.append(task_id)
-
-    if not params:
-        return {"status": "error", "message": "no task_id is provided (try to call the function get_tasks and get the corresponding task_id)"}
-    
-    query = f"UPDATE tasks SET {', '.join(updates)} WHERE task_id = %s"
-    cursor.execute(query, params)
-    conn.commit()
-    conn.close()
-    return {"status": "success", "message": f"Task {task_id} updated."}
 
 def get_task_details(task_id):
+    res = requests.get(f"{BASE_URL}/api/tasks/{task_id}")
+    return res.json()
 
-    conn = Database.get_connection()
-    cursor = conn.cursor(dictionary=True)
-    # Get task and join sub-tasks
-    cursor.execute("SELECT * FROM tasks WHERE task_id = %s AND deleted_at IS NULL", (task_id,))
-    task = cursor.fetchone()
-    
-    if not task:
-        return {"status": "error", "message": f"Task {task_id} not found"}
-    
-    cursor.execute("SELECT * FROM sub_tasks WHERE task_id = %s AND deleted_at IS NULL", (task_id,))
-    sub_tasks = cursor.fetchall()
-    conn.close()
-    return {"task": task, "sub_tasks": sub_tasks}
+
+def create_task(title, description=None, priority="medium", status="todo", category="other", deadline=None):
+    body = {k: v for k, v in {"title": title, "description": description, "priority": priority, "status": status, "category": category, "deadline": deadline}.items() if v is not None}
+    res = requests.post(f"{BASE_URL}/api/tasks", json=body)
+    return res.json()
+
+
+def update_task(task_id, title=None, description=None, priority=None, status=None, category=None, deadline=None):
+    body = {k: v for k, v in {"title": title, "description": description, "priority": priority, "status": status, "category": category, "deadline": deadline}.items() if v is not None}
+    res = requests.put(f"{BASE_URL}/api/tasks/{task_id}", json=body)
+    return res.json()
+
+
+def delete_task(task_id):
+    res = requests.delete(f"{BASE_URL}/api/tasks/{task_id}")
+    return res.json()
+
+
+def create_subtask(task_id, title, description=None, deadline=None):
+    body = {k: v for k, v in {"title": title, "description": description, "deadline": deadline}.items() if v is not None}
+    res = requests.post(f"{BASE_URL}/api/tasks/{task_id}/subtasks", json=body)
+    return res.json()
+
+
+def update_subtask(task_id, sub_task_id, title=None, description=None, deadline=None, is_done=None):
+    body = {k: v for k, v in {"title": title, "description": description, "deadline": deadline, "is_done": is_done}.items() if v is not None}
+    res = requests.put(f"{BASE_URL}/api/tasks/{task_id}/subtasks/{sub_task_id}", json=body)
+    return res.json()
+
+
+def delete_subtask(task_id, sub_task_id):
+    res = requests.delete(f"{BASE_URL}/api/tasks/{task_id}/subtasks/{sub_task_id}")
+    return res.json()

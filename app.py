@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_cors import CORS
 from api.tasks import register_tasks_routes
+import os
 from dotenv import load_dotenv
 
 def create_app():
