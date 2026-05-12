@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_cors import CORS
 from api.tasks import register_tasks_routes
+from dotenv import load_dotenv
 
 def create_app():
     app = Flask(__name__)
@@ -8,9 +9,10 @@ def create_app():
     register_tasks_routes(app)
     return app
 
+PORT = os.getenv('PORT')
 
-print("server is up and running")
+print(f"server is up and running on port {PORT}")
 app = create_app()
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=PORT)

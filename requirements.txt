@@ -1,14 +1,10 @@
 # Core
 Flask==3.0.0
 Flask-CORS==4.0.0
-
-mysql-connector-python==8.1.0
+requests==2.31.0
 
 # gemini
 google-genai==0.3.0
 
-pydantic==2.5.0
-
 # Environment
 python-dotenv==1.0.0
-

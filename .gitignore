@@ -1,2 +1,5 @@
 .venv
 .env
+__pycache__/
+
+task_management_app.sql
