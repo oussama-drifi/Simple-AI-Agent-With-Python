@@ -6,14 +6,17 @@ from dotenv import load_dotenv
 
 def create_app():
     app = Flask(__name__)
-    CORS(app)  # for React
+    CORS(app)  # for browser
     register_tasks_routes(app)
     return app
 
-PORT = os.getenv('PORT')
+load_dotenv()
+PORT = int(os.getenv("PORT", 5000))
 
 print(f"server is up and running on port {PORT}")
 app = create_app()
 
+is_debug_mode = os.getenv("DEBUG_MODE") == "1"
+
 if __name__ == '__main__':
-    app.run(debug=True, port=PORT)
+    app.run(debug=is_debug_mode, port=PORT)
