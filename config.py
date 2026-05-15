@@ -11,4 +11,4 @@ class Config:
     GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
     
     # CORS (for React)
-    CORS_ORIGINS = ['http://localhost:3000']
+    CORS_ORIGINS = [os.getenv('CORS_ORIGIN')]

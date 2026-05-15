@@ -119,6 +119,8 @@ task_tools = types.Tool(
     ]
 )
 
+
+
 config = types.GenerateContentConfig(
     tools=[task_tools],
     system_instruction=f"""You are a Task Manager Agent. Today's date: {date.today()}.
