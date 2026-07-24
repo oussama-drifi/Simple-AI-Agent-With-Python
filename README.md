@@ -24,6 +24,7 @@ The agent receives a user prompt and a conversation history, runs an agentic loo
 ## Tech Stack
 
 - **Flask** — HTTP server
+- **Flask-CORS** — Cross-origin resource sharing
 - **Google GenAI SDK** — Gemini 2.5 Flash with function calling
 - **python-dotenv** — Environment config
 
@@ -45,8 +46,18 @@ pip install -r requirements.txt
 Create a `.env` file at the root:
 
 ```env
+# Flask
 SECRET_KEY=your_secret_key
+PORT=5000
+DEBUG_MODE=0
+
+# Gemini
 GEMINI_API_KEY=your_gemini_api_key
+
+# CORS — origin of your front-end
+CORS_ORIGIN=http://localhost:5173
+
+# External CRUD service
 CRUD_SERVICE_BASE_URL=http://localhost:3000
 ```
 
@@ -125,8 +136,8 @@ The agent calls the following endpoints on the Task CRUD Service:
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | POST | `/api/tasks/:id/subtasks` | Add a sub-task to a task |
-| PUT | `/api/tasks/:id/subtasks/:sub_id` | Update a sub-task (title, description, deadline, is_done) |
-| DELETE | `/api/tasks/:id/subtasks/:sub_id` | Soft-delete a sub-task |
+| PUT | `/api/tasks/:id/subtasks/:sub_task_id` | Update a sub-task (title, description, deadline, is_done) |
+| DELETE | `/api/tasks/:id/subtasks/:sub_task_id` | Soft-delete a sub-task |
 
 **`POST /api/tasks/:id/subtasks` body:**
 ```json
@@ -137,7 +148,7 @@ The agent calls the following endpoints on the Task CRUD Service:
 }
 ```
 
-**`PUT /api/tasks/:id/subtasks/:sub_id` body** (all fields optional):
+**`PUT /api/tasks/:id/subtasks/:sub_task_id` body** (all fields optional):
 ```json
 {
   "title": "Write unit tests",
